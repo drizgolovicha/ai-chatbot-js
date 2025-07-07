@@ -1,6 +1,6 @@
 import pathlib
 
-from typing import List
+from typing import List, Coroutine
 from dotenv import load_dotenv
 from langchain_chroma import Chroma
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
@@ -12,11 +12,13 @@ from langchain_core.messages.utils import count_tokens_approximately
 # from langchain.retrievers.document_compressors import LLMChainExtractor
 
 from models.index import ChatMessage
+from utils.index import get_user_conversation, store_dialogs
 
 load_dotenv()
 
 root = pathlib.Path(__file__).parent.parent.resolve()
 CHROMA_PATH = f"{root}/db_metadata_v7"
+DIALOGS_PATH = f"{root}/dialogs"
 
 PROMPT_TEMPLATE = """
 [INST]
@@ -42,7 +44,8 @@ Question: {question}
 """
 
 # Initialize OpenAI chat model
-model = ChatTogether(model="meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8", temperature=0)
+#model = ChatTogether(model="meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8", temperature=0)
+model = ChatTogether(model="meta-llama/Llama-3.3-70B-Instruct-Turbo-Free", temperature=0)
 free_model = ChatTogether(model="meta-llama/Llama-3.3-70B-Instruct-Turbo-Free", temperature=0.1)
 
 # Setup Compressor (free version)
@@ -71,14 +74,56 @@ prompt_template = ChatPromptTemplate.from_messages(
 document_chain = create_stuff_documents_chain(llm=model, prompt=prompt_template)
 
 
-async def rewrite_query(user_question: str, history: List[BaseMessage]):
+async def generate_dialog_header(file_path: str) -> BaseMessage:
+    """
+    Generates a concise Markdown header for a dialogue log with a RAG-based assistant.
+
+    :param file_path: Path to the .md file containing the logged conversation.
+    :return: BaseMessage containing the generated header in Markdown format.
+    """
+    prompt = """You are an assistant responsible for generating a concise header block for a log file of a conversation with a RAG-based system.  
+        Analyze the full dialogue and generate a Markdown-formatted summary block with the following structure:
+        
+        # [Short summary of the conversation, 5–8 words]  
+        📅 Date: [date of logging in YYYY-MM-DD format]  
+        🔖 Importance: [from 🌟 to 🌟🌟🌟, depending on how critical or non-trivial the topic is]  
+        🎯 Intent: [main user intent — e.g., question, topic exploration, troubleshooting, learning, etc.]  
+        🧠 Model: [model used, e.g., GPT-4-turbo or RAG + GPT-3.5]  
+        📌 Context: [1–2 sentences summarizing the core content or purpose of the conversation]
+        
+        Example output:
+        # Setting up a Docker container without GUI  
+        📅 Date: 2025-06-28  
+        🔖 Importance: 🌟🌟🌟  
+        🎯 Intent: docker-setup  
+        🧠 Model: GPT-4-turbo  
+        📌 Context: installing CLI tools without using any graphical interface
+        
+        Now generate a header for the following conversation:
+        Model Used: {llm_model}
+        Log path: {file_path}
+        [CONVERSATION]
+        {context}
+        [/CONVERSATION]
+    """
+
+    content = ""
+    with open(file_path, "r") as file:
+        content = file.read()
+
+    template = ChatPromptTemplate.from_template(template=prompt)
+    prompt = template.format_messages(context=content, file_path=file_path, llm_model=model.model_name)
+    return await free_model.ainvoke(prompt)
+
+
+async def rewrite_query(user_question: str, history: List[BaseMessage]) -> BaseMessage:
     """
     Method to use to make USER question more relevant
     :param user_question: str
     :param history:
     :return:
     """
-    history_context = [item for item in history if isinstance(item, (HumanMessage, AIMessage))]
+    history_context = get_user_conversation(history)
 
     context = []
     for item in history_context[-2:]:
@@ -113,7 +158,7 @@ async def rewrite_query(user_question: str, history: List[BaseMessage]):
 
 async def query_rag(message: ChatMessage, session_id: str = ""):
     """
-    Query a Retrieval-Augmented Generation (RAG) system using Chroma database and OpenAI.
+    Query a Retrieval-Augmented Generation (RAG) system using a Chroma database and OpenAI.
     :param message: ChatMessage The text to query the RAG system with.
     :param session_id: str Session identifier
     :return str
@@ -178,5 +223,7 @@ async def query_rag(message: ChatMessage, session_id: str = ""):
 
     chat_history[session_id].append(HumanMessage(content=message.question))
     chat_history[session_id].append(AIMessage(content=response_text))
+
+    store_dialogs(session_id, chat_history[session_id])
 
     return response_text

@@ -1,11 +1,113 @@
 import os
+import pathlib
 
+from glob import glob
+from datetime import datetime
+from langchain_core.messages import HumanMessage, AIMessage, BaseMessage
 from langchain_community.document_loaders import TextLoader, Docx2txtLoader
 from langchain_core.documents.base import Document
 from typing import List
 
 
+root = pathlib.Path(__file__).parent.parent.resolve()
+DIALOGS_PATH = f"{root}/dialogs"
+
+
+def get_user_conversation(history: List[BaseMessage]):
+    """
+    Filter chat conversation, leaving the only query answer section
+    :param history:
+    :return: list
+    """
+    return [item for item in history if isinstance(item, (HumanMessage, AIMessage))]
+
+
+def store_dialogs(session: str, history: list):
+    """
+    Append log message to existing log
+    :param session:
+    :param history:
+    :return:
+    """
+    conversation = get_user_conversation(history)[-2:]
+    today = datetime.now().strftime("%Y%m%d")
+
+    with open(f'{DIALOGS_PATH}/{today}-{session[:8]}-headless.md', 'a') as file:
+        file.write('```dialog\n')
+        file.write('### USER\n')
+        file.write(f'{conversation[0].content.strip()}\n')
+        file.write('### ASSISTANT\n')
+        file.write(f'{conversation[1].content.strip()}\n')
+        file.write('```\n\n')
+
+
+def get_finished_headless_dialogs() -> list[str]:
+    """
+    Returns a list of headless dialogue log file paths that haven't been modified in the last 24 hours.
+
+    The function searches for all Markdown files in the DIALOGS_PATH directory that match the
+    '*-headless.md' pattern. It filters out files modified within the last 24 hours, returning only those
+    considered "finished" (i.e., older than 1 day).
+
+    :return: List of file paths to finished headless dialogue logs.
+    """
+
+    pattern = f'{DIALOGS_PATH}/*-headless.md'
+    matched_files = glob(pattern)
+
+    files = []
+    for file_path in matched_files:
+        modified = os.path.getmtime(file_path)
+        days_pass = (datetime.now() - datetime.fromtimestamp(modified)).days
+        if days_pass > 0:
+            files.append(file_path)
+
+    return files
+
+
+def prepend_to_file(file_path: str, text_to_prepend: str):
+    """
+    Prepends a given text block to the beginning of a file and renames the file if it matches a specific pattern.
+
+    This function reads the original contents of a file, adds the provided text at the top, writes the new
+    content back to the file, and renames the file by removing the '-headless' suffix if present.
+
+    :param file_path: Path to the original file (expected to be a Markdown file).
+    :param text_to_prepend: Text to insert at the beginning of the file content.
+    :raises FileNotFoundError: If the given file does not exist.
+    :raises Exception: If any other error occurs during file operations.
+    """
+    try:
+        with open(file_path, 'r') as f:
+            original_content = f.read()
+
+        new_content = text_to_prepend + '\n\n' + original_content
+
+        # Write the combined content back to the file
+        with open(file_path, 'w') as f:
+            f.write(new_content)
+
+        updated_file_path = file_path.replace('-headless.md', '.md')
+        os.rename(file_path, updated_file_path)
+    except FileNotFoundError:
+        print(f"Error: File '{file_path}' not found.")
+    except Exception as e:
+        print(f"An error occurred: {e}")
+
+
 def pretty_print_docs_with_score(docs):
+    """
+    Prints a list of documents along with their similarity scores in a visually separated format.
+
+    Each entry includes:
+    - Similarity score
+    - Document ID
+    - Document content
+
+    :param docs: A list of (Document, score) tuples, where:
+                 - Document has `.id` and `.page_content` attributes
+                 - score is a float representing similarity or relevance
+    """
     print(
         f"\n{'-' * 100}\n".join(
             [f"Score: {d[1]}\n\n Document: {d[0].id}\n\n" + d[0].page_content for d in docs]
@@ -14,6 +116,12 @@ def pretty_print_docs_with_score(docs):
 
 
 def pretty_print_docs(docs):
+    """
+    Nicely formats and prints a list of document chunks to the console.
+    Each document's source (from metadata) and its content are printed with a visual separator between them.
+
+    :param docs: A list of documents, each expected to have 'metadata["source"]' and 'page_content' attributes.
+    """
     print(
         f"\n{'-' * 100}\n".join(
             [f"Document: {d.metadata.get('source')}\n\n" + d.page_content for d in docs]

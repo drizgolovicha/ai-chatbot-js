@@ -8,3 +8,4 @@ pyvenv.cfg
 db_metadata_v*
 tmp
 .env
+dialogs/*
