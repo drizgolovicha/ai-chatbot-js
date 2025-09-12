@@ -85,7 +85,42 @@ Start the API server using FastAPI:
 fastapi run
 ```
 
-### 5.1 Switching Between Providers
+### 5.1 Setting Up Automated Source Synchronization (Optional)
+To keep your knowledge base automatically updated with the latest content from your sources, you can set up a cron job to run the source synchronization script periodically.
+
+1. **Make the script executable:**
+   ```bash
+   chmod +x scripts/source_sync.py
+   ```
+
+2. **Test the synchronization script:**
+   ```bash
+   python3 scripts/source_sync.py
+   ```
+
+3. **Set up a cron job** to run the synchronization automatically:
+   ```bash
+   crontab -e
+   ```
+
+4. **Add the following line** to run synchronization every hour (adjust the schedule as needed):
+   ```bash
+   0 * * * * cd /path/to/your/ai-chatbot-js && /path/to/your/env/bin/python scripts/source_sync.py >> logs/sync.log 2>&1
+   ```
+
+   **Alternative schedules:**
+   - Every 6 hours: `0 */6 * * *`
+   - Daily at 2 AM: `0 2 * * *`
+   - Every 30 minutes: `*/30 * * * *`
+
+5. **Create logs directory** (if it doesn't exist):
+   ```bash
+   mkdir -p logs
+   ```
+
+**Note:** Replace `/path/to/your/ai-chatbot-js` and `/path/to/your/env/bin/python` with your actual project path and Python virtual environment path.
+
+### 5.2 Switching Between Providers
 The project supports multiple providers for processing AI queries:
 
 1. **Default Local Llama Provider:**
@@ -96,7 +131,9 @@ The project supports multiple providers for processing AI queries:
   - Obtain your API key.
   - Create a `.env` file with the following content:
     ```
+    USER_AGENT="MyBot/1.0 (+https://mydomain.com/info)"
     TOGETHER_API_KEY="<YOUR KEY>"
+    CHROMA_DIR="<YOUR_DIR>"
     ```
   - Update `main.py` to switch the provider:
     ```python

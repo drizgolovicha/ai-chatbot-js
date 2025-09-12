@@ -2,6 +2,9 @@ import hashlib
 import os
 import shutil
 import pathlib
+from dotenv import load_dotenv
+
+load_dotenv()  # noqa: E402
 
 from langchain.text_splitter import MarkdownHeaderTextSplitter
 from langchain.schema import Document
@@ -12,7 +15,7 @@ from utils.docstore import SQLiteDocStore
 
 # Path to the directory to save a Chroma database
 root = pathlib.Path(__file__).parent.parent.resolve()
-CHROMA_PATH = f"{root}/db_metadata_v7"
+CHROMA_PATH = f"{root}/{os.environ.get('CHROMA_DIR')}"
 DB_PATH = f"{root}/data/docs.sqlite"
 
 global_unique_hashes = set()

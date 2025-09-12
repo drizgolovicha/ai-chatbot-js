@@ -38,13 +38,14 @@ async def timer():
     """
     logger.info("Run dialog handler")
     while True:
-        await asyncio.sleep(60 * 30)  # 30 min delay
         finished_headless_logs = get_finished_headless_dialogs()
         logger.info(f"Found {finished_headless_logs} logs to be managed")
         for log_file in finished_headless_logs:
             header = await generate_dialog_header(log_file)
             prepend_to_file(log_file, header.content)
             logger.info(f"Header was added to the {log_file}")
+
+        await asyncio.sleep(60 * 30)  # 30 min delay
 
 
 app.mount("/public", StaticFiles(directory="public"), name="public")
