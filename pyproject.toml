@@ -1,7 +1,21 @@
 [project]
 name = "ai-chatbot-js"
-version = "1.1.0"
-description = "A RAG-based assistant for auction platform support"
+version = "1.2.0"
+description = "A RAG-based AI assistant with automated source synchronization and knowledge management"
+readme = "README.md"
 authors = [
     { name = "Andrei Dryzgalovich", email = "andrei.d@geomotiv.com" }
 ]
+keywords = [
+    "ai", 
+    "chatbot", 
+    "rag", 
+    "retrieval-augmented-generation",
+    "langchain",
+    "chromadb",
+    "fastapi",
+    "ollama",
+    "together-ai",
+    "source-synchronization"
+]
+requires-python = ">=3.10"

@@ -1,3 +1,33 @@
+# Version 1.2.0
+## ✨ Source Synchronization & Data Management
+
+This version introduces automated source synchronization capabilities and enhanced data management features to keep the knowledge base up-to-date automatically.
+
+### 🔄 Source Synchronization
+
+* ✅ **Added automated source synchronization** for real-time content updates from external sources.
+* ✅ **Implemented MD5 hash comparison** to detect changes in source documents and update only modified content.
+* ✅ **Added selective vector replacement** - removes obsolete vectors and adds new ones only when content changes.
+* ✅ **Enhanced document tracking** with intelligent parsing and source change detection.
+
+### 🗄️ Database & Vector Management
+
+* ✅ **Enhanced ChromaDB utilities** with improved vector deletion and source-based filtering capabilities.
+* ✅ **Improved document storage operations** with better metadata handling and retrieval performance.
+* ✅ **Optimized ingestion pipeline** for more efficient document processing and vector generation.
+
+### 🔧 Core Improvements
+
+* ✅ **Enhanced application stability** with improved dialog handling and processing capabilities.
+* ✅ **Updated AI provider integration** with better context management and response handling.
+* ✅ **Refined text processing utilities** for improved chunking and content analysis.
+
+### 📚 Documentation & Maintenance
+
+* ✅ **Updated setup documentation** with latest installation and configuration instructions.
+* ✅ **Enhanced code documentation** with improved docstrings and development guidelines.
+* ✅ **Code quality improvements** with better error handling and performance optimizations.
+
 # Version 1.1.0
 ## ✨ Refactor & RAG Pipeline Improvements
 

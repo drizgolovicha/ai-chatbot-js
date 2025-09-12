@@ -1,7 +1,11 @@
 import pathlib
+import os
 
 from typing import List, Coroutine
 from dotenv import load_dotenv
+
+load_dotenv()  # noqa: E402
+
 from langchain_chroma import Chroma
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage, BaseMessage, trim_messages
@@ -17,7 +21,7 @@ from utils.index import get_user_conversation, store_dialogs
 load_dotenv()
 
 root = pathlib.Path(__file__).parent.parent.resolve()
-CHROMA_PATH = f"{root}/db_metadata_v7"
+CHROMA_PATH = f"{root}/{os.environ.get('CHROMA_DIR')}"
 DIALOGS_PATH = f"{root}/dialogs"
 
 PROMPT_TEMPLATE = """
@@ -44,9 +48,8 @@ Question: {question}
 """
 
 # Initialize OpenAI chat model
-#model = ChatTogether(model="meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8", temperature=0)
-model = ChatTogether(model="meta-llama/Llama-3.3-70B-Instruct-Turbo-Free", temperature=0)
-free_model = ChatTogether(model="meta-llama/Llama-3.3-70B-Instruct-Turbo-Free", temperature=0.1)
+model = ChatTogether(model="openai/gpt-oss-120b", temperature=0)
+free_model = ChatTogether(model="openai/gpt-oss-120b", temperature=0.1)
 
 # Setup Compressor (free version)
 """
