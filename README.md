@@ -120,7 +120,47 @@ To keep your knowledge base automatically updated with the latest content from y
 
 **Note:** Replace `/path/to/your/ai-chatbot-js` and `/path/to/your/env/bin/python` with your actual project path and Python virtual environment path.
 
-### 5.2 Switching Between Providers
+### 5.2 Setting Up Automated Health Checks (Optional)
+To monitor your AI assistant's health and ensure it's operating with correct context, you can set up automated health checks that run periodically.
+
+1. **Test the health check script manually:**
+   ```bash
+   python3 -m scripts.health_check --host http://127.0.0.1:8000
+   ```
+
+2. **For production environments, test with your deployed URL:**
+   ```bash
+   python3 -m scripts.health_check --host https://your-domain.com
+   ```
+
+3. **Set up a cron job** to run health checks automatically:
+   ```bash
+   crontab -e
+   ```
+
+4. **Add the following line** to run health checks daily at 9 AM:
+   ```bash
+   0 9 * * * cd /path/to/your/ai-chatbot-js && /path/to/your/env/bin/python3 -m scripts.health_check --host https://your-domain.com >> /path/to/your/ai-chatbot-js/logs/health_check.log 2>&1
+   ```
+
+   **Alternative schedules:**
+   - Every 6 hours: `0 */6 * * *`
+   - Twice daily (9 AM and 9 PM): `0 9,21 * * *`
+   - Every hour: `0 * * * *`
+
+5. **Create logs directory** (if it doesn't exist):
+   ```bash
+   mkdir -p logs
+   ```
+
+6. **Monitor health check results:**
+   ```bash
+   tail -f logs/health_check.log
+   ```
+
+**Note:** Replace the paths and host URL with your actual project path, Python virtual environment path, and deployed application URL.
+
+### 5.3 Switching Between Providers
 The project supports multiple providers for processing AI queries:
 
 1. **Default Local Llama Provider:**
