@@ -10,3 +10,4 @@ tmp
 .env
 dialogs/*
 data/docs.sqlite
+**/*.pyc

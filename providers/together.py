@@ -1,7 +1,7 @@
 import pathlib
 import os
 
-from typing import List, Coroutine
+from typing import List
 from dotenv import load_dotenv
 
 load_dotenv()  # noqa: E402
@@ -224,9 +224,10 @@ async def query_rag(message: ChatMessage, session_id: str = ""):
                                                   "question": message.question,
                                                   "chat_history": messages})
 
-    chat_history[session_id].append(HumanMessage(content=message.question))
-    chat_history[session_id].append(AIMessage(content=response_text))
+    if session_id != 'health-check':
+        chat_history[session_id].append(HumanMessage(content=message.question))
+        chat_history[session_id].append(AIMessage(content=response_text))
 
-    store_dialogs(session_id, chat_history[session_id])
+        store_dialogs(session_id, chat_history[session_id])
 
     return response_text

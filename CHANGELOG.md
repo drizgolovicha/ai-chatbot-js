@@ -1,3 +1,26 @@
+# Version 1.3.0
+## 🔍 Health Check & Chat Session Improvements
+
+This version introduces health check functionality and improves chat session management for better system monitoring and reliability.
+
+### 🏥 Health Check System
+
+* ✅ **Added comprehensive health check script** (`scripts/health_check.py`) for verifying AI Agent context and functionality.
+* ✅ **Implemented health check endpoint integration** with validation logic to ensure proper system operation.
+* ✅ **Added English documentation** with detailed method comments following project specifications.
+
+### 💬 Chat Session Management
+
+* ✅ **Enhanced session handling** in Together provider with conditional chat history storage.
+* ✅ **Improved health check isolation** - health check requests no longer affect regular chat sessions.
+* ✅ **Added debug logging** for better chat history monitoring and troubleshooting.
+
+### 🔧 Development & Maintenance
+
+* ✅ **Enhanced .gitignore** with Python bytecode file exclusion (`**/*.pyc`).
+* ✅ **Version bump** to 1.3.0 reflecting new health check capabilities.
+* ✅ **Improved system reliability** with better separation of health checks and regular operations.
+
 # Version 1.2.0
 ## ✨ Source Synchronization & Data Management
 
