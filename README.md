@@ -45,7 +45,30 @@ Install the required dependencies listed in `requirements.txt`:
 pip3 install -r requirements.txt
 ```
 
-### 4. Llama LLM Preparation (For Local Integration)
+### 4. Configure Environment Variables
+Before proceeding with the setup, you need to configure your environment variables:
+
+1. **Copy the example environment file:**
+   ```bash
+   cp .env.example .env
+   ```
+
+2. **Edit the `.env` file** with your actual configuration values:
+   ```bash
+   nano .env
+   ```
+   or use any text editor of your choice.
+
+3. **Required configurations:**
+   - `TOGETHER_API_KEY`: Your Together AI API key (if using Together provider)
+   - `USER_AGENT`: Custom user agent for web scraping
+   - `CHROMA_DIR`: Directory name for your vector database
+   - `SLACK_BOT_TOKEN`: Slack bot token (optional, for notifications)
+   - `SLACK_BOT_CHANNEL`: Slack channel ID (optional, for notifications)
+
+**Note:** The `.env.example` file contains detailed descriptions and instructions for each variable.
+
+### 5. Llama LLM Preparation (For Local Integration)
 1. Download and install OLLAMA from [here](https://ollama.com/download).
 2. Pull a Llama LLM locally, e.g., [Llama 3.2](https://ollama.com/library/llama3.2):
    ```bash
@@ -56,7 +79,7 @@ pip3 install -r requirements.txt
    ollama pull mxbai-embed-large
    ```
 
-#### 4.1 Data Preparation
+#### 5.1 Data Preparation
 Prepare your assistant with knowledge about your company or service:
 1. Update `data/links.txt` with the web links to scrape data from, one URL per line. Example:
    ```
@@ -69,7 +92,7 @@ Prepare your assistant with knowledge about your company or service:
    python3 scrapper.py
    ```
 
-#### 4.2 Data Ingestion
+#### 5.2 Data Ingestion
 To store the parsed data in a vector database:
 1. Use ChromaDB, which works efficiently with SQLite.
 2. Run the `ingest.py` script to populate the database:
@@ -79,13 +102,13 @@ To store the parsed data in a vector database:
 
 Once completed, the assistant is ready for use.
 
-### 5. Run the API
+### 6. Run the API
 Start the API server using FastAPI:
 ```bash
 fastapi run
 ```
 
-### 5.1 Setting Up Automated Source Synchronization (Optional)
+### 6.1 Setting Up Automated Source Synchronization (Optional)
 To keep your knowledge base automatically updated with the latest content from your sources, you can set up a cron job to run the source synchronization script periodically.
 
 1. **Make the script executable:**
@@ -120,7 +143,7 @@ To keep your knowledge base automatically updated with the latest content from y
 
 **Note:** Replace `/path/to/your/ai-chatbot-js` and `/path/to/your/env/bin/python` with your actual project path and Python virtual environment path.
 
-### 5.2 Setting Up Automated Health Checks (Optional)
+### 6.2 Setting Up Automated Health Checks (Optional)
 To monitor your AI assistant's health and ensure it's operating with correct context, you can set up automated health checks that run periodically.
 
 1. **Test the health check script manually:**
@@ -160,7 +183,7 @@ To monitor your AI assistant's health and ensure it's operating with correct con
 
 **Note:** Replace the paths and host URL with your actual project path, Python virtual environment path, and deployed application URL.
 
-### 5.3 Switching Between Providers
+### 6.3 Switching Between Providers
 The project supports multiple providers for processing AI queries:
 
 1. **Default Local Llama Provider:**
@@ -185,7 +208,7 @@ The project supports multiple providers for processing AI queries:
     ```
   - Restart the service to apply changes.
 
-### 6. Verify the Setup
+### 7. Verify the Setup
 Open the browser and navigate to [http://127.0.0.1:8000/public/chat.html](http://127.0.0.1:8000/public/chat.html). Test the bot's functionality and start interacting with your assistant.
 As an alternative you can open [http://127.0.0.1:8000/public/iframe.html](http://127.0.0.1:8000/public/iframe.html) to see how it can be ingested on you custom page.
 
