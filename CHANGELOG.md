@@ -1,3 +1,13 @@
+# Version 1.4.0
+## 📢 Slack Notification System
+
+This version introduces Slack notification integration for automated monitoring and alerting capabilities.
+
+### 📢 Notification System
+
+* ✅ **Added Slack notification utility** (`utils/slack_notificator.py`) for real-time monitoring alerts.
+* ✅ **Integrated Slack notifications** into health check system for automated status reporting.
+
 # Version 1.3.0
 ## 🔍 Health Check & Chat Session Improvements
 

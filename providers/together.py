@@ -18,8 +18,6 @@ from langchain_core.messages.utils import count_tokens_approximately
 from models.index import ChatMessage
 from utils.index import get_user_conversation, store_dialogs
 
-load_dotenv()
-
 root = pathlib.Path(__file__).parent.parent.resolve()
 CHROMA_PATH = f"{root}/{os.environ.get('CHROMA_DIR')}"
 DIALOGS_PATH = f"{root}/dialogs"

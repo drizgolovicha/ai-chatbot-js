@@ -3,6 +3,8 @@ import argparse
 from dotenv import load_dotenv
 from datetime import datetime
 
+from utils.slack_notificator import slack_post_message
+
 load_dotenv()  # noqa: E402
 
 print(f"{str(datetime.today())}")
@@ -39,14 +41,25 @@ def healthCheck():
             content = json.get("response", "").lower()
 
             assert "hmm, i am not sure" not in content, f"❌ Healthcheck failed: unexpected answer -> {content}"
-            print(f"✅ Healthcheck for '{args.host}' passed: context is correct")
+
+            message = f"✅ Healthcheck for '{args.host}' passed: context is correct"
+            print(message)
+
+            try:
+                slack_post_message(message)
+            except Exception as ex:
+                print(str(ex))
         else:
             print(f"POST request failed with status code: {response.status_code}")
             print("Response content:", response.text)
     except requests.exceptions.RequestException as e:
-        print(f"❌ Healthcheck failed: An error occurred during the request: {e}")
+        message = f"❌ Healthcheck failed: An error occurred during the request: {e}"
+        print(message)
+        slack_post_message(message)
     except AssertionError as e:
-        print(str(e))
+        message = str(e)
+        print(message)
+        slack_post_message(message)
 
 
 if __name__ == "__main__":
