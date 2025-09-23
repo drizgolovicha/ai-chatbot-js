@@ -1,3 +1,19 @@
+# Version 1.5.0
+## 🔄 Provider Refactoring & RAG Agent Implementation
+
+This version introduces a major refactoring of the provider system with a new RAG agent implementation for improved modularity and maintainability.
+
+### 🔧 Provider Architecture
+
+* ✅ **Refactored provider system** with new modular architecture
+* ✅ **Implemented RAG agent** for enhanced retrieval capabilities
+* ✅ **Improved code organization** with separated provider concerns
+
+### 📦 Project Structure
+
+* ✅ **Updated project metadata** with enhanced description and keywords
+* ✅ **Enhanced documentation** with updated setup instructions
+
 # Version 1.4.0
 ## 📢 Slack Notification System
 
