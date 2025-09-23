@@ -198,15 +198,6 @@ The project supports multiple providers for processing AI queries:
     TOGETHER_API_KEY="<YOUR KEY>"
     CHROMA_DIR="<YOUR_DIR>"
     ```
-  - Update `main.py` to switch the provider:
-    ```python
-    from providers.ollama import query_rag
-    ```
-    Change to:
-    ```python
-    from providers.together import query_rag
-    ```
-  - Restart the service to apply changes.
 
 ### 7. Verify the Setup
 Open the browser and navigate to [http://127.0.0.1:8000/public/chat.html](http://127.0.0.1:8000/public/chat.html). Test the bot's functionality and start interacting with your assistant.

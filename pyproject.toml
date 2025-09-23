@@ -1,6 +1,6 @@
 [project]
 name = "ai-chatbot-js"
-version = "1.4.0"
+version = "1.5.0"
 description = "A RAG-based AI assistant with automated source synchronization and knowledge management"
 readme = "README.md"
 authors = [

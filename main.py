@@ -1,10 +1,16 @@
 import asyncio
 import logging
+import os
+
+from dotenv import load_dotenv
+
+load_dotenv()  # noqa: E402
 
 from fastapi.middleware.cors import CORSMiddleware
 
 from models.index import ChatMessage
-from providers.together import query_rag, generate_dialog_header
+from providers.rag_agent import AIAgent
+from providers.providers import LMStudioProvider, TogetherProvider
 
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
@@ -21,6 +27,14 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+model = LMStudioProvider(host=os.environ.get('LM_STUDIO_HOST'), model_name="qwen/qwen3-8b")
+free_model = LMStudioProvider(host=os.environ.get('LM_STUDIO_HOST'), model_name="qwen/qwen3-8b", temperature=0.5)
+# model = TogetherProvider(model_name="meta-llama/Llama-3.3-70B-Instruct-Turbo-Free")
+# free_model = TogetherProvider(model_name="meta-llama/Llama-3.3-70B-Instruct-Turbo-Free", temperature=0.5)
+
+llm = AIAgent(model=model, free_model=free_model)
 
 
 async def timer():
@@ -41,7 +55,7 @@ async def timer():
         finished_headless_logs = get_finished_headless_dialogs()
         logger.info(f"Found {finished_headless_logs} logs to be managed")
         for log_file in finished_headless_logs:
-            header = await generate_dialog_header(log_file)
+            header = await llm.generate_dialog_header(log_file)
             prepend_to_file(log_file, header.content)
             logger.info(f"Header was added to the {log_file}")
 
@@ -59,7 +73,7 @@ async def read_root():
 
 @app.post("/chat/{chat_id}")
 async def ask(chat_id: str, message: ChatMessage):
-    return {"response": await query_rag(message, chat_id)}
+    return {"response": await llm.query(message, chat_id)}
 
 
 asyncio.ensure_future(timer())
