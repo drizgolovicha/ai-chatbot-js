@@ -107,6 +107,12 @@ def prepend_to_file(file_path: str, text_to_prepend: str):
         print(f"An error occurred: {e}")
 
 
+def get_docs_with_scores(docs):
+    return f"\n{'-' * 100}\n".join(
+        [f"Score: {d[1]}\nDocument: {d[0].id}\n\n" + d[0].page_content for d in docs]
+    )
+
+
 def pretty_print_docs_with_score(docs):
     """
     Prints a list of documents along with their similarity scores in a visually separated format.
@@ -120,11 +126,7 @@ def pretty_print_docs_with_score(docs):
                  - Document has `.id` and `.page_content` attributes
                  - score is a float representing similarity or relevance
     """
-    print(
-        f"\n{'-' * 100}\n".join(
-            [f"Score: {d[1]}\n\n Document: {d[0].id}\n\n" + d[0].page_content for d in docs]
-        )
-    )
+    print(get_docs_with_scores(docs))
 
 
 def pretty_print_docs(docs):
