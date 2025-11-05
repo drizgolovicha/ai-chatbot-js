@@ -1,6 +1,8 @@
 import pathlib
 import os
+import logging
 
+from langchain_core.globals import set_debug
 from typing import List
 from dotenv import load_dotenv
 
@@ -16,12 +18,14 @@ from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain_core.messages.utils import count_tokens_approximately
 
 from models.index import ChatMessage
-from utils.index import get_user_conversation, store_dialogs
+from utils.index import get_user_conversation, store_dialogs, get_docs_with_scores
 
 root = pathlib.Path(__file__).parent.parent.resolve()
 CHROMA_PATH = f"{root}/{os.environ.get('CHROMA_DIR')}"
 DIALOGS_PATH = f"{root}/dialogs"
 LOG_PATH = f"{root}/logs"
+
+set_debug(False)
 
 PROMPT_TEMPLATE = """
 [INST]
@@ -41,13 +45,30 @@ Do not add new facts; use context for answers.
 Do not provide long answers. Use concise, clear language, focusing on key points while maintaining friendliness and professionalism.
 Answer the question based only on the following context:
 
+[CONTEXT]
 {context}
-Question: {question}
+[/CONTEXT]
 [/INST]
 """
 
 
+class Logger:
+    def __init__(self, path: str):
+        self.__logger = logging.getLogger(__name__)
+        self.__logger.setLevel(logging.INFO)
+
+        """
+        log_file_handler = logging.FileHandler(path, mode="w")
+        log_file_handler.terminator = "\n"
+        self.__logger.addHandler(log_file_handler)
+        """
+
+    def info(self, *args):
+        self.__logger.info(''.join(args))
+
+
 class AIAgent:
+    __logger: Logger
     __db: Chroma
     __chat_history = {}  # approach with AiMessage/HumanMessage
     __model: LLMProvider
@@ -58,6 +79,10 @@ class AIAgent:
         self.__db = Chroma(persist_directory=CHROMA_PATH, embedding_function=OllamaEmbeddings(model="mxbai-embed-large"))
         self.__model = model
         self.__free_model = free_model
+
+        self.__logger = Logger(f"{root}/logs/debugger.log")
+        self.__logger.info(f"DB PATH: {CHROMA_PATH}")
+        self.__logger.info(f"MODEL: {self.__model.model_name}")
 
     async def generate_dialog_header(self, file_path: str) -> BaseMessage:
         """
@@ -127,7 +152,9 @@ class AIAgent:
         Return ONLY the rewritten query text, without any additional formatting or explanations.
         
         Conversation History:
+        [CONTEXT]
         {context}
+        [/CONTEXT]
         
         Original query: {user_question}
         
@@ -146,6 +173,7 @@ class AIAgent:
         :param session_id: str Session identifier
         :return str
         """
+        self.__logger.info("QUERY: ", message.question)
         prompt_template = ChatPromptTemplate.from_messages(
             [
                 (
@@ -178,6 +206,7 @@ class AIAgent:
             """)]
 
         found_context = self.__db.similarity_search_with_relevance_scores(message.question, k=3)
+        self.__logger.info("\nORIGINAL CHUNKS\n", get_docs_with_scores(found_context))
         """
         print("ORIGINAL CONTEXT")
         pretty_print_docs_with_score(found_context)
@@ -185,9 +214,11 @@ class AIAgent:
         """
 
         rewritten_query = await self.rewrite_query(message.question, self.__chat_history[session_id])
+        self.__logger.info("\nREWRITTEN QUERY\n", rewritten_query.content)
 
         # print("REWRITTEN QUERY", rewritten_query.content, end=f"\n\n{'-'*50}\n\n")
         additional_context = self.__db.similarity_search_with_relevance_scores(rewritten_query.content, k=3)
+        self.__logger.info("\nADDITIONAL CHUNKS\n", get_docs_with_scores(additional_context))
         """
         print("ADDITIONAL CONTEXT")
         pretty_print_docs_with_score(additional_context)
@@ -212,6 +243,13 @@ class AIAgent:
         context = found_context + [doc for doc in additional_context if doc[1] not in context_keys]
         context.sort(key=lambda item: item[1], reverse=True)
 
+        self.__logger.info("\nCHOSEN CHUNKS\n", get_docs_with_scores([x for x in context[:4]]))
+        filled_prompt = prompt_template.format_messages(**{"context": ''.join([f'{x[0].page_content}\n' for x in context[:4]]),
+                                                           "question": message.question,
+                                                           "chat_history": messages})
+
+        self.__logger.info("\nFINAL PROMPT\n", ''.join([f'Role: {msg.type}\nContent: {msg.content}\n\n' for msg in filled_prompt]))
+
         # Generate response text based on the prompt
         response_text = await document_chain.ainvoke({"context": [x[0] for x in context[:4]],
                                                       "question": message.question,
@@ -223,4 +261,5 @@ class AIAgent:
 
             store_dialogs(session_id, self.__chat_history[session_id])
 
+        self.__logger.info("MODEL RESPONSE\n", response_text)
         return response_text
